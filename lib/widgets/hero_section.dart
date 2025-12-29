@@ -202,7 +202,7 @@ class _HeroSectionState extends State<HeroSection> {
                     ElevatedButton(
                       onPressed: () => context.push('/diagnosis'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: Colors.cyan,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 16),
                       ),

@@ -3,9 +3,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://192.168.100.168:8000', // CHANGE TO YOUR DOMAIN
-    connectTimeout: const Duration(seconds: 100),
-    receiveTimeout: const Duration(seconds: 100),
+    // baseUrl: 'https://xeecode-solutions.tech',
+    baseUrl: 'http://172.17.242.126:8000',
+    connectTimeout: const Duration(seconds: 200),
+    receiveTimeout: const Duration(seconds: 200),
   ));
 
   static const _storage = FlutterSecureStorage();

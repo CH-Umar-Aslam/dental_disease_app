@@ -56,7 +56,7 @@ class _PatientDiagnosisScreenState extends State<PatientDiagnosisScreen> {
   
 
   final Map<String, String> statusOptions = {
-    "all": "All Statuses",
+    "all": "All",
     "pending": "Pending",
     "diagnosed": "Diagnosed",
     "reviewed": "Reviewed",
@@ -189,10 +189,12 @@ class _PatientDiagnosisScreenState extends State<PatientDiagnosisScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
-        title: const Text("My Reports",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text("Diagnosis",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold,fontSize: 14)),
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
+         titleSpacing: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
           Padding(

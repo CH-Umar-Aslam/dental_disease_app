@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_client.dart';
 
 class Header extends StatelessWidget {
@@ -68,6 +68,129 @@ class Header extends StatelessWidget {
 class _ProfileMenu extends StatelessWidget {
   const _ProfileMenu();
 
+  // 1. The Logic to open the browser
+  Future<void> _launchWebDashboard() async {
+    // REPLACE WITH YOUR ACTUAL WEB URL
+    final Uri url =
+        Uri.parse('https://dental-disease-diagnosis.vercel.app');
+
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint("Error launching URL: $e");
+    }
+  }
+
+  // 2. The "Cool" Bottom Sheet UI
+  void _showWebRedirect(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(color: Colors.black26, blurRadius: 10, spreadRadius: 2)
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Decorative Handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Icon with decorative background
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.cyan.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.laptop_mac_rounded,
+                  size: 48, color: Colors.cyan),
+            ),
+            const SizedBox(height: 20),
+
+            // Text Content
+            const Text(
+              "Visit Web Dashboard",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "Access advanced analytics, detailed reports, and full administrative features via our secure web portal.",
+              textAlign: TextAlign.center,
+              style:
+                  TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+            ),
+            const SizedBox(height: 30),
+
+            // Action Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close sheet
+                  _launchWebDashboard(); // Open Browser
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A), // Dark Slate
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Launch Web Portal",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.open_in_new, size: 18),
+                  ],
+                ),
+              ),
+            ),
+
+            // Cancel Button
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Maybe Later",
+                style:
+                    TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleLogout(BuildContext context) async {
     await ApiClient.storage.delete(key: 'access_token');
     await ApiClient.storage.delete(key: 'role');
@@ -76,11 +199,9 @@ class _ProfileMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Use FutureBuilder to wait for the role
     return FutureBuilder<String?>(
       future: ApiClient.storage.read(key: 'role'),
       builder: (context, snapshot) {
-        // If loading, show a simple icon or spinner
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.all(8.0),
@@ -88,52 +209,45 @@ class _ProfileMenu extends StatelessWidget {
           );
         }
 
-        final role = snapshot.data; // e.g., 'patient', 'dentist', 'admin'
+        final role = snapshot.data;
 
         return PopupMenuButton<String>(
           icon: const Icon(Icons.account_circle, size: 30, color: Colors.cyan),
           tooltip: 'Account',
           offset: const Offset(0, 50),
-
-          // 2. Handle Navigation Logic based on Role
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           onSelected: (value) {
             if (value == 'logout') {
               _handleLogout(context);
             } else if (value == 'dashboard') {
-              // Example: Send patients to one screen, dentists to another
-              if (role == 'patient') {
-                context.push('/patient-dashboard');
-              } else {
-                context.push('/dentist-dashboard');
-              }
-            }
-            else if (value == 'my-diagnosis') {
-              // Example: Send patients to one screen, dentists to another
+              // --- TRIGGER THE COOL SHEET HERE ---
+              _showWebRedirect(context);
+            } else if (value == 'my-diagnosis') {
               if (role == 'patient') {
                 context.push('/patient-detections');
               } else {
-                print("hit");
                 context.push('/dentist-detections');
               }
-            }
-             else if (value == 'diagnose') {
+            } else if (value == 'diagnose') {
               context.push('/diagnose');
             } else if (value == 'patient-diagnosis') {
               context.push('/dentist-shared-detections');
             }
           },
-
-          // 3. Dynamically build the list based on the role
           itemBuilder: (BuildContext context) {
             List<PopupMenuEntry<String>> menuItems = [];
 
-            // --- COMMON ITEMS (Everyone sees these) ---
+            // --- COMMON ITEMS ---
             menuItems.add(const PopupMenuItem(
               value: 'dashboard',
               child: Row(children: [
-                Icon(Icons.dashboard, color: Colors.black54),
+                // Added a small visual cue that this is external
+                Icon(Icons.dashboard_customize_outlined, color: Colors.black54),
                 SizedBox(width: 10),
-                Text('Dashboard')
+                Text('Web Dashboard'),
+                Spacer(),
+                Icon(Icons.open_in_new, size: 14, color: Colors.grey)
               ]),
             ));
 
@@ -143,9 +257,9 @@ class _ProfileMenu extends StatelessWidget {
               menuItems.add(const PopupMenuItem(
                 value: 'patient-diagnosis',
                 child: Row(children: [
-                  Icon(Icons.people, color: Colors.black54),
+                  Icon(Icons.people_alt_outlined, color: Colors.black54),
                   SizedBox(width: 10),
-                  Text('Patient Diagnosis') // Only Dentist sees this
+                  Text('Patient Diagnosis')
                 ]),
               ));
             }
@@ -154,18 +268,18 @@ class _ProfileMenu extends StatelessWidget {
             menuItems.add(const PopupMenuDivider());
             menuItems.add(
               const PopupMenuItem(
-                value: 'my-diagnosis', 
+                value: 'my-diagnosis',
                 child: Row(
                   children: [
-                    Icon(Icons.file_copy, color: Colors.black54),
+                    Icon(Icons.folder_shared_outlined, color: Colors.black54),
                     SizedBox(width: 10),
-                    Text('My Reports'),
+                    Text('My Diagnosis'),
                   ],
                 ),
               ),
             );
 
-            // --- LOGOUT (Always at the bottom) ---
+            // --- LOGOUT ---
             menuItems.add(const PopupMenuDivider());
             menuItems.add(const PopupMenuItem(
               value: 'logout',
